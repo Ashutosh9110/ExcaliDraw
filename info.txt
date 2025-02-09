@@ -1,0 +1,20 @@
+
+
+
+
+{
+    "type" : "join_room",
+    "roomId" : "chat-room-1"
+}
+
+{
+    "type" : "leave_room",
+    "roomId" : "chat-room-1"
+}
+
+
+{
+    "type" : "chat",
+    "roomId" : "1",
+    "message" : "Hi there"
+}
