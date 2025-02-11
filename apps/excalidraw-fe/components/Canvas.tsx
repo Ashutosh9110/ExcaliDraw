@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react"
 
 
 
-export function Canvas({ roomId } : { roomId : string }) {
+export function Canvas({ roomId, socket } : { roomId : string, socket: WebSocket }) {
     
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
