@@ -24,6 +24,12 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221 83% 53%;
     --radius: 0.75rem;
+
+    /* Theme color variations */
+    --theme-blue: #3b82f6;
+    --theme-purple: #8b5cf6;
+    --theme-green: #10b981;
+    --theme-red: #ef4444;
   }
 
   .dark {
@@ -47,4 +53,64 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
   }
+
+  /* Dark theme variations */
+  .dark.theme-blue {
+    --primary: 221 83% 53%;
+    --ring: 221 83% 53%;
+  }
+
+  .dark.theme-purple {
+    --primary: 270 76% 64%;
+    --ring: 270 76% 64%;
+  }
+
+  .dark.theme-green {
+    --primary: 142 69% 42%;
+    --ring: 142 69% 42%;
+  }
+
+  .dark.theme-red {
+    --primary: 0 84.2% 60.2%;
+    --ring: 0 84.2% 60.2%;
+  }
+
+  /* Light theme variations */
+  .theme-blue {
+    --primary: 221 83% 53%;
+    --ring: 221 83% 53%;
+  }
+
+  .theme-purple {
+    --primary: 270 76% 64%;
+    --ring: 270 76% 64%;
+  }
+
+  .theme-green {
+    --primary: 142 69% 42%;
+    --ring: 142 69% 42%;
+  }
+
+  .theme-red {
+    --primary: 0 84.2% 60.2%;
+    --ring: 0 84.2% 60.2%;
+  }
+}
+
+/* Transition for theme changes */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Mouse pointer shadow effect */
+.cursor-shadow {
+  pointer-events: none;
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0) 70%);
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  transition: opacity 0.2s ease, transform 0.1s ease;
 }
