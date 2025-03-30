@@ -1,13 +1,23 @@
+"use client";
+
+import { useEffect } from "react";
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
-import { Pencil, Share2, Users2, Sparkles, Github, Download } from "lucide-react";
+import { Pencil, Share2, Users2, Sparkles, Github, Download, LogIn, UserPlus } from "lucide-react";
 import Link from "next/link";
+import { Navbar } from "@/components/Navbar";
+import { useAuth } from "@/components/AuthContext";
+import { ThemeToggle } from "@/components/ThemeProvider";
 
-function App() {
+export default function HomePage() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
+      {isAuthenticated && <Navbar />}
+      
       {/* Hero Section */}
-      <header className="relative overflow-hidden">
+      <header className={`relative overflow-hidden ${isAuthenticated ? 'pt-16' : ''}`}>
         <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-foreground">
@@ -15,22 +25,43 @@ function App() {
               <span className="text-primary block">Made Simple</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-              Create, collaborate, and share beautiful diagrams and sketches with our intuitive drawing tool. 
-              No sign-up required.
+              Create, collaborate, and share beautiful diagrams and sketches with our intuitive drawing tool.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Link href={"/signin"}>
-                <Button variant={"primary"} size="lg" className="h-12 px-6 rounded-md">
-                  Sign in
-                  <Pencil className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button variant="outline" size="lg" className="h-12 px-6 rounded-md">
-                  Sign up
-                </Button>
-              </Link>
-            </div>
+            
+            {!isAuthenticated && !isLoading && (
+              <div className="mt-10 flex items-center justify-center gap-x-6">
+                <Link href="/signin">
+                  <Button variant="primary" size="lg" className="h-12 px-6 rounded-md">
+                    Sign in
+                    <LogIn className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button variant="outline" size="lg" className="h-12 px-6 rounded-md">
+                    Sign up
+                    <UserPlus className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {isAuthenticated && !isLoading && (
+              <div className="mt-10">
+                <Link href="/canvas">
+                  <Button variant="primary" size="lg" className="h-12 px-6 rounded-md">
+                    Start Drawing
+                    <Pencil className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Theme toggle for non-authenticated users */}
+            {!isAuthenticated && (
+              <div className="flex justify-center mt-8">
+                <ThemeToggle />
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -90,13 +121,21 @@ function App() {
                 Join thousands of users who are already creating amazing diagrams and sketches.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
-                <Button size="lg" variant="secondary" className="h-12 px-6">
-                  Open Canvas
-                  <Pencil className="ml-2 h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="lg" className="h-12 px-6 bg-transparent text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                  View Gallery
-                </Button>
+                {isAuthenticated ? (
+                  <Link href="/canvas">
+                    <Button size="lg" variant="secondary" className="h-12 px-6">
+                      New Canvas
+                      <Pencil className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/signup">
+                    <Button size="lg" variant="secondary" className="h-12 px-6">
+                      Get Started
+                      <UserPlus className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -111,7 +150,7 @@ function App() {
               © 2024 Excalidraw Clone. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <a href="https://github.com" className="text-muted-foreground hover:text-primary">
+              <a href="https://github.com" className="text-muted-foreground hover:text-primary" target="_blank" rel="noopener noreferrer">
                 <Github className="h-5 w-5" />
               </a>
               <a href="#" className="text-muted-foreground hover:text-primary">
@@ -124,5 +163,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

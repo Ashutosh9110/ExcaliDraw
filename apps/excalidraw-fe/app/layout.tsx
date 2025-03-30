@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CursorShadow } from "@/components/CursorShadow";
+import { AuthProvider } from "@/components/AuthContext";
+import { AuthGuard } from "@/components/AuthGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,10 +31,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider defaultTheme="light">
-          <CursorShadow />
-          {children}
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider defaultTheme="light">
+            <CursorShadow />
+            <AuthGuard>{children}</AuthGuard>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

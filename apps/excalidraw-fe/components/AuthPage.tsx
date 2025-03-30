@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "./ThemeProvider";
 import { User, LucideLogIn, Mail, Lock, ArrowLeft } from "lucide-react";
+import { useAuth } from "./AuthContext";
 
 export function AuthPage({ isSignin }: { isSignin: boolean }) {
     const [email, setEmail] = useState("");
@@ -12,6 +13,14 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { login, signup, isAuthenticated } = useAuth();
+
+    // Redirect to canvas if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.push("/canvas");
+        }
+    }, [isAuthenticated, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,14 +28,16 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
         setLoading(true);
 
         try {
-            // Here you would integrate with your actual backend auth
-            // For now simulating successful auth
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (isSignin) {
+                await login(email, password);
+            } else {
+                await signup(email, password);
+            }
             
             // Redirect to canvas page after successful auth
             router.push("/canvas");
         } catch {
-            setError("Authentication failed. Please try again.");
+            setError(isSignin ? "Login failed. Please try again." : "Signup failed. Please try again.");
         } finally {
             setLoading(false);
         }

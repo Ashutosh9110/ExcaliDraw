@@ -3,6 +3,7 @@ import { IconButton } from "./IconButton";
 import { Circle, Pencil, RectangleHorizontalIcon, Palette } from "lucide-react";
 import { Game } from "@/draw/Game";
 import { ThemeToggle, ThemeSelector } from "./ThemeProvider";
+import { Navbar } from "./Navbar";
 
 export type Tool = "circle" | "rect" | "pencil";
 
@@ -33,18 +34,20 @@ export function Canvas({
         }
     }, [canvasRef, roomId, socket]);
 
-    return <div style={{
-        height: "100vh",
-        overflow: "hidden"
-    }}>
-        <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight}></canvas>
-        <Topbar 
-            setSelectedTool={setSelectedTool} 
-            selectedTool={selectedTool} 
-            showThemeSelector={showThemeSelector}
-            setShowThemeSelector={setShowThemeSelector}
-        />
-    </div>
+    return (
+        <div className="h-screen bg-background overflow-hidden">
+            <Navbar />
+            <div className="h-full pt-12"> {/* Add padding top to account for navbar */}
+                <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight - 48}></canvas>
+                <Topbar 
+                    setSelectedTool={setSelectedTool} 
+                    selectedTool={selectedTool} 
+                    showThemeSelector={showThemeSelector}
+                    setShowThemeSelector={setShowThemeSelector}
+                />
+            </div>
+        </div>
+    );
 }
 
 function Topbar({
@@ -62,7 +65,7 @@ function Topbar({
         <>
             <div style={{
                 position: "fixed",
-                top: 10,
+                top: 70, // Adjusted to be below navbar
                 left: 10
             }}>
                 <div className="flex gap-1">
@@ -91,7 +94,7 @@ function Topbar({
             </div>
 
             {/* Theme controls in top right */}
-            <div className="fixed top-3 right-3 flex gap-2 items-center bg-card/80 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-border">
+            <div className="fixed top-16 right-3 flex gap-2 items-center bg-card/80 backdrop-blur-sm p-2 rounded-lg shadow-sm border border-border">
                 <div className="flex items-center mr-1">
                     <span className="text-xs text-muted-foreground mr-2">Theme</span>
                     <IconButton 
@@ -106,7 +109,7 @@ function Topbar({
             {/* Theme selector popup */}
             {showThemeSelector && (
                 <div 
-                    className="fixed top-16 right-3 bg-card p-3 rounded-lg shadow-lg border border-border animate-in fade-in slide-in-from-top-5 duration-300"
+                    className="fixed top-28 right-3 bg-card p-3 rounded-lg shadow-lg border border-border animate-in fade-in slide-in-from-top-5 duration-300"
                 >
                     <p className="text-xs text-muted-foreground mb-2">Select Color Theme</p>
                     <ThemeSelector />
