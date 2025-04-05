@@ -14,10 +14,8 @@ type Shape = {
     radius: number;
 } | {
     type: "pencil";
-    startX: number;
-    startY: number;
-    endX: number;
-    endY: number;
+    points: { x: number, y: number }[];
+    color?: string;
 }
 
 export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
@@ -44,11 +42,18 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
     let clicked = false;
     let startX = 0;
     let startY = 0;
+    let currentPencilPoints: { x: number, y: number }[] = [];
 
     canvas.addEventListener("mousedown", (e) => {
         clicked = true
         startX = e.clientX
         startY = e.clientY
+        
+        // @ts-ignore
+        const selectedTool = window.selectedTool;
+        if (selectedTool === "pencil") {
+            currentPencilPoints = [{ x: e.clientX, y: e.clientY }];
+        }
     })
 
     canvas.addEventListener("mouseup", (e) => {
@@ -60,7 +65,6 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
         const selectedTool = window.selectedTool;
         let shape: Shape | null = null;
         if (selectedTool === "rect") {
-
             shape = {
                 type: "rect",
                 x: startX,
@@ -76,6 +80,14 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
                 centerX: startX + radius,
                 centerY: startY + radius,
             }
+        } else if (selectedTool === "pencil" && currentPencilPoints.length > 1) {
+            // Finish pencil stroke
+            shape = {
+                type: "pencil",
+                points: [...currentPencilPoints],
+                color: "rgba(255, 255, 255)"
+            }
+            currentPencilPoints = [];
         }
 
         if (!shape) {
@@ -112,6 +124,21 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
                 ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.closePath();                
+            } else if (selectedTool === "pencil") {
+                // Add point to current pencil stroke
+                currentPencilPoints.push({ x: e.clientX, y: e.clientY });
+                
+                // Draw current pencil stroke
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (currentPencilPoints.length > 0) {
+                    ctx.moveTo(currentPencilPoints[0].x, currentPencilPoints[0].y);
+                    for (let i = 1; i < currentPencilPoints.length; i++) {
+                        ctx.lineTo(currentPencilPoints[i].x, currentPencilPoints[i].y);
+                    }
+                }
+                ctx.stroke();
+                ctx.closePath();
             }
         }
     })            
@@ -131,6 +158,19 @@ function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: Ca
             ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
             ctx.stroke();
             ctx.closePath();                
+        } else if (shape.type === "pencil") {
+            ctx.strokeStyle = shape.color || "rgba(255, 255, 255)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const points = shape.points;
+            if (points && points.length > 0) {
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
+            }
+            ctx.stroke();
+            ctx.closePath();
         }
     })
 }

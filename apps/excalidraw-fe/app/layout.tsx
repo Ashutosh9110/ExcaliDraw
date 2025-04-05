@@ -33,26 +33,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* <AuthProvider>
+        <AuthProvider>
           <ThemeProvider defaultTheme="light">
             <CursorShadow />
             <AuthGuard>{children}</AuthGuard>
           </ThemeProvider>
-        </AuthProvider> */}
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={true}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="system"
-            limit={5}
-          />
-          {children}
+        </AuthProvider>
       </body>
     </html>
   );

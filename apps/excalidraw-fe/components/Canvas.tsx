@@ -21,6 +21,9 @@ export function Canvas({
 
     useEffect(() => {
         game?.setTool(selectedTool);
+        
+        // Set the global window.selectedTool property for compatibility with index.ts
+        window.selectedTool = selectedTool;
     }, [selectedTool, game]);
 
     useEffect(() => {
