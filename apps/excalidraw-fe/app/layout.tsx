@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ToastContainer } from "react-toastify";
+
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CursorShadow } from "@/components/CursorShadow";
 import { AuthProvider } from "@/components/AuthContext";
@@ -31,12 +33,26 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
+        {/* <AuthProvider>
           <ThemeProvider defaultTheme="light">
             <CursorShadow />
             <AuthGuard>{children}</AuthGuard>
           </ThemeProvider>
-        </AuthProvider>
+        </AuthProvider> */}
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="system"
+            limit={5}
+          />
+          {children}
       </body>
     </html>
   );
