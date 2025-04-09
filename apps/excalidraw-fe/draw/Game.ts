@@ -1,6 +1,8 @@
 import { Tool } from "@/components/Canvas";
 import { getExistingShapes } from "./http";
 
+type FillStyle = 'solid' | 'hachure' | 'cross-hatch';
+
 type Shape = {
     type: "rect";
     x: number;
@@ -9,6 +11,7 @@ type Shape = {
     height: number;
     strokeColor?: string;
     strokeWidth?: number;
+    fillStyle?: FillStyle;
 } | {
     type: "circle";
     centerX: number;
@@ -16,6 +19,7 @@ type Shape = {
     radius: number;
     strokeColor?: string;
     strokeWidth?: number;
+    fillStyle?: FillStyle;
 } | {
     type: "pencil";
     points: { x: number, y: number }[];
@@ -32,6 +36,7 @@ type Shape = {
     size: number;
     strokeColor?: string;
     strokeWidth?: number;
+    fillStyle?: FillStyle;
 } | {
     type: "diamond";
     centerX: number;
@@ -40,6 +45,7 @@ type Shape = {
     height: number;
     strokeColor?: string;
     strokeWidth?: number;
+    fillStyle?: FillStyle;
 } | {
     type: "arrow";
     startX: number;
@@ -71,8 +77,9 @@ export class Game {
     private currentPencilPoints: { x: number, y: number }[] = [];
     private currentEraserPoints: { x: number, y: number }[] = [];
     private eraserSize = 20; // Size of the eraser in pixels
-    private strokeColor = "#ffffff";
+    private strokeColor = "#1e1e1e";
     private strokeWidth = 2;
+    private fillStyle: FillStyle = 'hachure';
 
     socket: WebSocket;
 
@@ -104,6 +111,10 @@ export class Game {
 
     setStrokeWidth(width: number) {
         this.strokeWidth = width;
+    }
+
+    setFillStyle(style: FillStyle) {
+        this.fillStyle = style;
     }
 
     async init() {
@@ -142,7 +153,7 @@ export class Game {
 
     clearCanvas() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fillStyle = "rgba(0, 0, 0)";
+        this.ctx.fillStyle = "hsl(30 20% 96%)"; // Use Excalidraw's cream background
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Create a temporary canvas for drawing with eraser applied
@@ -151,27 +162,49 @@ export class Game {
         tempCanvas.height = this.canvas.height;
         const tempCtx = tempCanvas.getContext('2d')!;
         
-        // Fill with black background
-        tempCtx.fillStyle = "rgba(0, 0, 0)";
+        // Fill with cream background
+        tempCtx.fillStyle = "hsl(30 20% 96%)";
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
         // First, draw all non-eraser shapes
         this.existingShapes.forEach((shape) => {
             if (shape.type !== "eraser") {
+                // Apply sketchy filter for all shapes
+                tempCtx.save();
+                
                 if (shape.type === "rect") {
-                    tempCtx.strokeStyle = shape.strokeColor || "rgba(255, 255, 255)";
+                    tempCtx.strokeStyle = shape.strokeColor || "#1e1e1e";
                     tempCtx.lineWidth = shape.strokeWidth || 2;
+                    
+                    // Handle fill based on fillStyle
+                    if (shape.fillStyle) {
+                        this.applyFillStyle(tempCtx, shape.x, shape.y, shape.width, shape.height, shape.fillStyle, shape.strokeColor || "#1e1e1e");
+                    }
+                    
                     tempCtx.strokeRect(shape.x, shape.y, shape.width, shape.height);
                 } else if (shape.type === "circle") {
                     tempCtx.beginPath();
-                    tempCtx.strokeStyle = shape.strokeColor || "rgba(255, 255, 255)";
+                    tempCtx.strokeStyle = shape.strokeColor || "#1e1e1e";
                     tempCtx.lineWidth = shape.strokeWidth || 2;
+                    
                     tempCtx.arc(shape.centerX, shape.centerY, Math.abs(shape.radius), 0, Math.PI * 2);
+                    
+                    // Handle fill based on fillStyle
+                    if (shape.fillStyle) {
+                        const x = shape.centerX - shape.radius;
+                        const y = shape.centerY - shape.radius;
+                        const size = shape.radius * 2;
+                        this.applyFillStyle(tempCtx, x, y, size, size, shape.fillStyle, shape.strokeColor || "#1e1e1e");
+                    }
+                    
                     tempCtx.stroke();
                     tempCtx.closePath();                
                 } else if (shape.type === "pencil") {
-                    tempCtx.strokeStyle = shape.color || "rgba(255, 255, 255)";
+                    tempCtx.strokeStyle = shape.color || "#1e1e1e";
                     tempCtx.lineWidth = shape.strokeWidth || 2;
+                    tempCtx.lineCap = "round";
+                    tempCtx.lineJoin = "round";
+                    
                     tempCtx.beginPath();
                     const points = shape.points;
                     if (points.length > 0) {
@@ -183,12 +216,18 @@ export class Game {
                     tempCtx.stroke();
                     tempCtx.closePath();
                 } else if (shape.type === "square") {
-                    tempCtx.strokeStyle = shape.strokeColor || "rgba(255, 255, 255)";
+                    tempCtx.strokeStyle = shape.strokeColor || "#1e1e1e";
                     tempCtx.lineWidth = shape.strokeWidth || 2;
+                    
+                    // Handle fill based on fillStyle
+                    if (shape.fillStyle) {
+                        this.applyFillStyle(tempCtx, shape.x, shape.y, shape.size, shape.size, shape.fillStyle, shape.strokeColor || "#1e1e1e");
+                    }
+                    
                     tempCtx.strokeRect(shape.x, shape.y, shape.size, shape.size);
                 } else if (shape.type === "diamond") {
                     tempCtx.beginPath();
-                    tempCtx.strokeStyle = shape.strokeColor || "rgba(255, 255, 255)";
+                    tempCtx.strokeStyle = shape.strokeColor || "#1e1e1e";
                     tempCtx.lineWidth = shape.strokeWidth || 2;
                     
                     const halfWidth = shape.width / 2;
@@ -200,11 +239,20 @@ export class Game {
                     tempCtx.lineTo(shape.centerX - halfWidth, shape.centerY); // Left
                     tempCtx.closePath();
                     
+                    // Handle fill based on fillStyle
+                    if (shape.fillStyle) {
+                        const x = shape.centerX - halfWidth;
+                        const y = shape.centerY - halfHeight;
+                        this.applyFillStyle(tempCtx, x, y, shape.width, shape.height, shape.fillStyle, shape.strokeColor || "#1e1e1e");
+                    }
+                    
                     tempCtx.stroke();
                 } else if (shape.type === "arrow") {
                     tempCtx.beginPath();
-                    tempCtx.strokeStyle = shape.strokeColor || "rgba(255, 255, 255)";
+                    tempCtx.strokeStyle = shape.strokeColor || "#1e1e1e";
                     tempCtx.lineWidth = shape.strokeWidth || 2;
+                    tempCtx.lineCap = "round";
+                    tempCtx.lineJoin = "round";
                     
                     // Draw the main line
                     tempCtx.moveTo(shape.startX, shape.startY);
@@ -228,9 +276,11 @@ export class Game {
                     tempCtx.stroke();
                 } else if (shape.type === "text") {
                     tempCtx.font = `${shape.fontSize || 16}px ${shape.fontFamily || 'Arial'}`;
-                    tempCtx.fillStyle = shape.color || "rgba(255, 255, 255)";
+                    tempCtx.fillStyle = shape.color || "#1e1e1e";
                     tempCtx.fillText(shape.text, shape.x, shape.y);
                 }
+                
+                tempCtx.restore();
             }
         });
 
@@ -291,7 +341,8 @@ export class Game {
                 height,
                 width,
                 strokeColor: this.strokeColor,
-                strokeWidth: this.strokeWidth
+                strokeWidth: this.strokeWidth,
+                fillStyle: this.fillStyle
             };
         } else if (selectedTool === "square") {
             const size = Math.max(Math.abs(width), Math.abs(height));
@@ -304,7 +355,8 @@ export class Game {
                 y,
                 size,
                 strokeColor: this.strokeColor,
-                strokeWidth: this.strokeWidth
+                strokeWidth: this.strokeWidth,
+                fillStyle: this.fillStyle
             };
         } else if (selectedTool === "circle") {
             const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
@@ -314,7 +366,8 @@ export class Game {
                 centerX: this.startX + width/2,
                 centerY: this.startY + height/2,
                 strokeColor: this.strokeColor,
-                strokeWidth: this.strokeWidth
+                strokeWidth: this.strokeWidth,
+                fillStyle: this.fillStyle
             };
         } else if (selectedTool === "diamond") {
             shape = {
@@ -324,7 +377,8 @@ export class Game {
                 width: Math.abs(width),
                 height: Math.abs(height),
                 strokeColor: this.strokeColor,
-                strokeWidth: this.strokeWidth
+                strokeWidth: this.strokeWidth,
+                fillStyle: this.fillStyle
             };
         } else if (selectedTool === "arrow") {
             shape = {
@@ -511,5 +565,56 @@ export class Game {
             type: "clear_canvas",
             roomId: this.roomId
         }));
+    }
+
+    // Method to apply different fill styles
+    private applyFillStyle(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, style: FillStyle, color: string) {
+        ctx.fillStyle = color;
+        
+        if (style === 'solid') {
+            // For solid fill, use a semi-transparent fill
+            ctx.globalAlpha = 0.2;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        } else if (style === 'hachure') {
+            // For hachure, use diagonal lines
+            ctx.save();
+            ctx.globalAlpha = 0.15;
+            
+            const lineSpacing = 8;
+            ctx.beginPath();
+            
+            for (let i = 0; i < width + height; i += lineSpacing) {
+                ctx.moveTo(x + Math.min(i, width), y);
+                ctx.lineTo(x, y + Math.min(i, height));
+            }
+            
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        } else if (style === 'cross-hatch') {
+            // For cross-hatch, use diagonal lines in both directions
+            ctx.save();
+            ctx.globalAlpha = 0.15;
+            
+            const lineSpacing = 8;
+            ctx.beginPath();
+            
+            // First direction (top-left to bottom-right)
+            for (let i = 0; i < width + height; i += lineSpacing) {
+                ctx.moveTo(x + Math.min(i, width), y);
+                ctx.lineTo(x, y + Math.min(i, height));
+            }
+            
+            // Second direction (top-right to bottom-left)
+            for (let i = 0; i < width + height; i += lineSpacing) {
+                ctx.moveTo(x + Math.max(0, i - height), y + Math.min(i, height));
+                ctx.lineTo(x + Math.min(width, i), y + Math.max(0, i - width));
+            }
+            
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        }
     }
 }
