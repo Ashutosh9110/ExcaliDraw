@@ -5,12 +5,12 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 221 83% 53%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -22,8 +22,8 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
-    --radius: 0.75rem;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
 
     /* Theme color variations */
     --theme-blue: #3b82f6;
@@ -95,6 +95,85 @@
     --primary: 0 84.2% 60.2%;
     --ring: 0 84.2% 60.2%;
   }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--card));
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Canvas grid background */
+.canvas-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, hsl(var(--foreground) / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+}
+
+/* Tooltip animations */
+.tooltip {
+  @apply absolute z-50 px-2 py-1 bg-card/95 backdrop-blur-sm text-xs rounded shadow-sm border border-border pointer-events-none whitespace-nowrap transition-opacity duration-150;
+}
+
+.tooltip-enter {
+  opacity: 0;
+}
+
+.tooltip-enter-active {
+  opacity: 1;
+}
+
+.tooltip-exit {
+  opacity: 1;
+}
+
+.tooltip-exit-active {
+  opacity: 0;
+}
+
+/* Canvas controls */
+.canvas-controls {
+  @apply bg-card/80 backdrop-blur-sm border border-border rounded-lg shadow-sm transition-all duration-200 ease-in-out;
+}
+
+/* Custom animation for appearing elements */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.pop-in {
+  animation: pop-in 0.2s ease-out forwards;
 }
 
 /* Transition for theme changes */
